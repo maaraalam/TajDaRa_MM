@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#20352c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TAJDARA M&M" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>TAJDARA M&M</title>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="crown">♛</div>
+      <div><div class="brand-title">TAJDARA M&M</div><div class="brand-sub">Mobile Trading Companion</div></div>
+    </div>
+    <button id="refreshAll" class="icon-btn">↻</button>
+  </header>
+
+  <main id="view" class="view"></main>
+
+  <nav class="bottom-nav">
+    <button data-tab="dashboard" class="nav-btn active"><span>◫</span><small>Dashboard</small></button>
+    <button data-tab="markets" class="nav-btn"><span>⌁</span><small>Markets</small></button>
+    <button data-tab="planner" class="nav-btn"><span>◎</span><small>Planner</small></button>
+    <button data-tab="journal" class="nav-btn"><span>▤</span><small>Journal</small></button>
+    <button data-tab="settings" class="nav-btn"><span>⚙</span><small>Settings</small></button>
+  </nav>
+</div>
+
+<div id="modal" class="modal hidden"><div class="modal-card" id="modalCard"></div></div>
+<script src="app.js"></script>
+</body>
+</html>
