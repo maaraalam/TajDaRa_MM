@@ -2,38 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-  <meta name="theme-color" content="#20352c" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#1f2d22" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="TAJDARA M&M" />
-  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="styles.css" />
   <title>TAJDARA M&M</title>
 </head>
 <body>
-<div class="app-shell">
   <header class="topbar">
-    <div class="brand">
-      <div class="crown">♛</div>
-      <div><div class="brand-title">TAJDARA M&M</div><div class="brand-sub">Mobile Trading Companion</div></div>
-    </div>
-    <button id="refreshAll" class="icon-btn">↻</button>
+    <div class="brand"><div class="crown">♛</div><div><h1>TAJDARA M&M</h1><div class="tag">Market Intelligence · Trade Journal</div></div></div>
+    <button id="refreshAll" class="icon-btn" aria-label="Refresh">↻</button>
   </header>
-
-  <main id="view" class="view"></main>
-
+  <main id="view"></main>
   <nav class="bottom-nav">
-    <button data-tab="dashboard" class="nav-btn active"><span>◫</span><small>Dashboard</small></button>
-    <button data-tab="markets" class="nav-btn"><span>⌁</span><small>Markets</small></button>
-    <button data-tab="planner" class="nav-btn"><span>◎</span><small>Planner</small></button>
-    <button data-tab="journal" class="nav-btn"><span>▤</span><small>Journal</small></button>
-    <button data-tab="settings" class="nav-btn"><span>⚙</span><small>Settings</small></button>
+    <button class="nav-btn active" data-tab="dashboard"><span>⌂</span><small>Home</small></button>
+    <button class="nav-btn" data-tab="markets"><span>◫</span><small>Markets</small></button>
+    <button class="nav-btn" data-tab="analysis"><span>⌁</span><small>Analyze</small></button>
+    <button class="nav-btn" data-tab="planner"><span>◎</span><small>Plan</small></button>
+    <button class="nav-btn" data-tab="journal"><span>▤</span><small>Journal</small></button>
+    <button class="nav-btn" data-tab="settings"><span>⚙</span><small>Settings</small></button>
   </nav>
-</div>
-
-<div id="modal" class="modal hidden"><div class="modal-card" id="modalCard"></div></div>
-<script src="app.js"></script>
+  <div id="modal" class="modal hidden"><div id="modalCard" class="modal-card"></div></div>
+  <script src="app.js"></script>
 </body>
 </html>

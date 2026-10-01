@@ -2,10 +2,10 @@
   "name":"TAJDARA M&M",
   "short_name":"TAJDARA M&M",
   "start_url":"./",
+  "scope":"./",
   "display":"standalone",
-  "background_color":"#0f1713",
-  "theme_color":"#20352c",
-  "orientation":"portrait-primary",
+  "background_color":"#101713",
+  "theme_color":"#1f2d22",
   "icons":[
     {"src":"icons/icon-180.png","sizes":"180x180","type":"image/png"},
     {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png"}
