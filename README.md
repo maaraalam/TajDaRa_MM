@@ -1,20 +1,23 @@
-# TAJDARA M&M Mobile v5.1
+# TAJDARA M&M Universal v6
 
-Emergency compatibility update for GitHub Pages / iPhone PWA.
+One responsive PWA for iPhone and desktop.
 
-## What changed
-- Main CSS and JavaScript are embedded directly inside `index.html`.
-- This prevents a blank/stuck lock screen when `app.js` or `styles.css` are missing from the GitHub repository root.
-- Service Worker cache version updated to v5.1.
-- Password remains local-only and is never sent to NX, TX, DX, GitHub, or any account.
+## Security
+- Local password lock only.
+- No NX/TX/DX account connection.
+- No API keys, balances, private order history, or order execution.
+- Password verifier stays in local browser storage.
 
-## GitHub update
+## GitHub Pages update
 Upload/replace these items in the repository root:
-- `index.html`
-- `manifest.webmanifest`
-- `sw.js`
-- `icons/`
+- index.html
+- manifest.webmanifest
+- sw.js
+- icons/
 
-Delete old `app.js` and `styles.css` if present; v5.1 does not need them.
+Keep Pages on `main` + `/(root)`.
 
-After commit, open the GitHub Pages URL in Safari and refresh once. If the Home Screen app still shows the old version, remove the old Home Screen icon and add it again from Safari.
+## If the lock page appears blank
+This v6 build fixes the JavaScript parse error that could leave only `TAJDARA M&M / Secure local access` visible. The package has been syntax-checked before release.
+
+After publishing, open the GitHub Pages URL directly in Safari/Chrome and hard refresh. On iPhone, remove the older Home Screen icon once and add the site again if iOS keeps an old service-worker cache.
