@@ -1,23 +1,22 @@
-# TAJDARA M&M Universal v6
+# TAJDARA M&M Universal v7
 
-One responsive PWA for iPhone and desktop.
+Responsive PWA for desktop and iPhone.
 
-## Security
-- Local password lock only.
-- No NX/TX/DX account connection.
-- No API keys, balances, private order history, or order execution.
-- Password verifier stays in local browser storage.
+## Venues
+- TX: Toobit public market data
+- NX: Nobitex public market data
+- BN: Binance public spot market data
+- DX: Digikala Digital Gold local/manual price history
 
-## GitHub Pages update
-Upload/replace these items in the repository root:
-- index.html
-- manifest.webmanifest
-- sw.js
-- icons/
+No exchange account connection, no private API keys, and no automatic order execution.
 
-Keep Pages on `main` + `/(root)`.
+## v7 changes
+- Fixed TX chart: Toobit klines now request startTime/endTime, required to receive historical candles.
+- Added BN (Binance) as a public-data venue.
+- DX now has a chart based on local price snapshots entered in Settings.
+- Added Signal Watch: BUY, TAKE PROFIT, EXIT/SELL.
+- Browser/in-app notifications and optional webhook delivery.
+- Signal watches run every 60 seconds while the app is open.
 
-## If the lock page appears blank
-This v6 build fixes the JavaScript parse error that could leave only `TAJDARA M&M / Secure local access` visible. The package has been syntax-checked before release.
-
-After publishing, open the GitHub Pages URL directly in Safari/Chrome and hard refresh. On iPhone, remove the older Home Screen icon once and add the site again if iOS keeps an old service-worker cache.
+## Email/SMS
+A static GitHub Pages app cannot safely embed email/SMS credentials. Use the optional webhook URL with Make/Zapier/Twilio/your own server to relay signal notifications.
