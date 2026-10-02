@@ -2,6 +2,42 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const fmt=(n,d=2)=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:d});
 const now=()=>new Date().toISOString();
 const VENUE_LABEL={TX:'TX',NX:'NX',DX:'DX'};
+const AUTH_KEY='tajdara_mm_auth_v1';
+const LOCK_TIMEOUT_MS=10*60*1000;
+let appStarted=false,refreshTimer=null,lockTimer=null;
+function b64(bytes){return btoa(String.fromCharCode(...bytes));}
+function unb64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0));}
+async function passwordHash(password,salt,iterations=180000){
+  const enc=new TextEncoder();
+  const key=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-256'},key,256);
+  return b64(new Uint8Array(bits));
+}
+function authConfig(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}}
+function lockMarkup(mode='unlock'){
+  const setup=mode==='setup';
+  $('#lockBody').innerHTML=`<div class="field"><label>${setup?'Create Password':'Password'}</label><input id="lockPass" type="password" autocomplete="${setup?'new-password':'current-password'}" placeholder="${setup?'Minimum 6 characters':'Enter password'}"></div>${setup?'<div class="field"><label>Confirm Password</label><input id="lockPass2" type="password" autocomplete="new-password" placeholder="Repeat password"></div>':''}<button id="lockAction" class="btn block">${setup?'Create Password':'Unlock'}</button><div id="lockError" class="lock-error"></div><div class="security-note">Password verification is local to this device. No account connection or password is sent to NX, TX, DX, GitHub or any server.</div>`;
+  $('#lockAction').onclick=setup?createLocalPassword:unlockApp;
+  $('#lockPass').addEventListener('keydown',e=>{if(e.key==='Enter'&&!setup)unlockApp()});
+  setTimeout(()=>$('#lockPass')?.focus(),100);
+}
+function showLock(mode='unlock'){$('#lockScreen').classList.remove('hidden');lockMarkup(mode)}
+function hideLock(){$('#lockScreen').classList.add('hidden')}
+async function createLocalPassword(){
+  const p=$('#lockPass').value,p2=$('#lockPass2').value,err=$('#lockError');
+  if(p.length<6){err.textContent='Use at least 6 characters.';return}
+  if(p!==p2){err.textContent='Passwords do not match.';return}
+  try{const salt=crypto.getRandomValues(new Uint8Array(16));const iterations=180000;const hash=await passwordHash(p,salt,iterations);localStorage.setItem(AUTH_KEY,JSON.stringify({salt:b64(salt),hash,iterations,createdAt:Date.now()}));hideLock();startApp();toast('Password created');}catch(e){err.textContent='Could not create password on this device.'}
+}
+async function verifyPassword(p){const a=authConfig();if(!a)return false;const h=await passwordHash(p,unb64(a.salt),a.iterations||180000);return h===a.hash}
+async function unlockApp(){const p=$('#lockPass').value,err=$('#lockError');err.textContent='Checking…';try{if(await verifyPassword(p)){err.textContent='';hideLock();startApp();resetLockTimer()}else err.textContent='Incorrect password.'}catch(e){err.textContent='Could not verify password.'}}
+function lockNow(){if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}showLock('unlock')}
+function resetLockTimer(){if($('#lockScreen')&&!$('#lockScreen').classList.contains('hidden'))return;clearTimeout(lockTimer);lockTimer=setTimeout(lockNow,LOCK_TIMEOUT_MS)}
+async function changePasswordModal(){modal(`<h2>Change Password</h2><div class="form-grid"><div class="field full"><label>Current Password</label><input id="cpOld" type="password" autocomplete="current-password"></div><div class="field full"><label>New Password</label><input id="cpNew" type="password" autocomplete="new-password" placeholder="Minimum 6 characters"></div><div class="field full"><label>Confirm New Password</label><input id="cpNew2" type="password" autocomplete="new-password"></div></div><div id="cpError" class="lock-error"></div><div class="hr"></div><button class="btn block" onclick="saveNewPassword()">Change Password</button>`)}
+async function saveNewPassword(){const old=$('#cpOld').value,n=$('#cpNew').value,n2=$('#cpNew2').value,err=$('#cpError');if(!(await verifyPassword(old))){err.textContent='Current password is incorrect.';return}if(n.length<6){err.textContent='Use at least 6 characters.';return}if(n!==n2){err.textContent='New passwords do not match.';return}const salt=crypto.getRandomValues(new Uint8Array(16)),iterations=180000,hash=await passwordHash(n,salt,iterations);localStorage.setItem(AUTH_KEY,JSON.stringify({salt:b64(salt),hash,iterations,createdAt:Date.now()}));closeModal();toast('Password changed')}
+function startApp(){if(!appStarted){appStarted=true;render();refreshPrices();}else{render();refreshPrices()}if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(refreshPrices,60000);resetLockTimer()}
+function boot(){const a=authConfig();showLock(a?'unlock':'setup')}
+['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{if(appStarted)resetLockTimer()},{passive:true}));
 const DEFAULTS={settings:{capital:400000000,riskPct:1,dxGoldPrice:0,timeframe:'1h'},symbols:[
  {venue:'TX',symbol:'BTCUSDT',label:'BTC / USDT'},
  {venue:'TX',symbol:'ETHUSDT',label:'ETH / USDT'},
@@ -61,8 +97,8 @@ function addFillModal(id,i=null){let t=state.journal.find(x=>x.id===id),f=i===nu
 function editFill(id,i){addFillModal(id,i)}
 function saveFill(id,i){let t=state.journal.find(x=>x.id===id),f={type:$('#fType').value,qty:+$('#fQty').value,price:+$('#fPrice').value,fee:+$('#fFee').value,time:now()};t.fills=t.fills||[];if(i===null)t.fills.push(f);else t.fills[i]={...t.fills[i],...f};let r=realizedPL(t);t.status=r.open>0?(r.sq>0?'PARTIAL':'OPEN'):(r.bq>0?'CLOSED':t.status);save();fillsModal(id);}
 function deleteFill(id,i){let t=state.journal.find(x=>x.id===id);t.fills.splice(i,1);save();fillsModal(id);}
-function renderSettings(){$('#view').innerHTML=`<div class="section-title"><h2>Settings</h2></div><div class="card"><div class="form-grid"><div class="field full"><label>Trading Capital (Toman)</label><input id="sCap" type="number" value="${state.settings.capital}"></div><div class="field"><label>Default Risk %</label><input id="sRisk" type="number" step="0.1" value="${state.settings.riskPct}"></div><div class="field"><label>DX Digital Gold Price</label><input id="sGold" type="number" step="any" value="${state.settings.dxGoldPrice}"></div></div><div class="hr"></div><button class="btn block" onclick="saveSettings()">Save Settings</button></div><div class="section-title"><h2>Privacy</h2></div><div class="card"><div class="warning">No account connection. No private API keys. No balances. No account history. No order placement. NX and TX are used only for public market data. DX price is manual.</div></div><div class="section-title"><h2>Data</h2></div><div class="card"><div class="row wrap"><button class="btn secondary" onclick="exportData()">Export Backup</button><button class="btn secondary" onclick="importData()">Import Backup</button></div><div class="hr"></div><div class="subtle">Journal and settings are stored locally in this browser / installed PWA.</div></div>`;}
+function renderSettings(){$('#view').innerHTML=`<div class="section-title"><h2>Settings</h2></div><div class="card"><div class="form-grid"><div class="field full"><label>Trading Capital (Toman)</label><input id="sCap" type="number" value="${state.settings.capital}"></div><div class="field"><label>Default Risk %</label><input id="sRisk" type="number" step="0.1" value="${state.settings.riskPct}"></div><div class="field"><label>DX Digital Gold Price</label><input id="sGold" type="number" step="any" value="${state.settings.dxGoldPrice}"></div></div><div class="hr"></div><button class="btn block" onclick="saveSettings()">Save Settings</button></div><div class="section-title"><h2>Security</h2></div><div class="card"><div class="security-grid"><button class="btn secondary" onclick="changePasswordModal()">Change Password</button><button class="btn secondary" onclick="lockNow()">Lock Now</button></div><div class="security-note">The app locks after 10 minutes of inactivity. Password verification stays on this device and is never sent to NX, TX, DX or GitHub.</div></div><div class="section-title"><h2>Privacy</h2></div><div class="card"><div class="warning">No account connection. No private API keys. No balances. No account history. No order placement. NX and TX are used only for public market data. DX price is manual.</div></div><div class="section-title"><h2>Data</h2></div><div class="card"><div class="row wrap"><button class="btn secondary" onclick="exportData()">Export Backup</button><button class="btn secondary" onclick="importData()">Import Backup</button></div><div class="hr"></div><div class="subtle">Journal and settings are stored locally in this browser / installed PWA.</div></div>`;}
 function saveSettings(){state.settings.capital=+$(`#sCap`).value;state.settings.riskPct=+$(`#sRisk`).value;state.settings.dxGoldPrice=+$(`#sGold`).value;save();render();toast('Settings saved');}
 function exportData(){let blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='TAJDARA_MM_backup.json';a.click();URL.revokeObjectURL(a.href);}
 function importData(){let i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=async()=>{try{state=JSON.parse(await i.files[0].text());save();render();toast('Backup imported')}catch{toast('Invalid backup')}};i.click();}
-$$('.nav-btn').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;render()}));$('#refreshAll').addEventListener('click',refreshPrices);if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});render();refreshPrices();setInterval(refreshPrices,60000);
+$$('.nav-btn').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;render()}));$('#refreshAll').addEventListener('click',refreshPrices);if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});boot();
