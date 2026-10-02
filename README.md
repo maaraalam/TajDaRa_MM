@@ -1,39 +1,20 @@
-# TAJDARA M&M — Mobile PWA v5
+# TAJDARA M&M Mobile v5.1
 
-English-only mobile trading dashboard / journal.
+Emergency compatibility update for GitHub Pages / iPhone PWA.
 
-## Venue labels
-- TX = public Toobit market data
-- NX = public Nobitex market data
-- DX = manual digital-gold reference price
+## What changed
+- Main CSS and JavaScript are embedded directly inside `index.html`.
+- This prevents a blank/stuck lock screen when `app.js` or `styles.css` are missing from the GitHub repository root.
+- Service Worker cache version updated to v5.1.
+- Password remains local-only and is never sent to NX, TX, DX, GitHub, or any account.
 
-## Privacy
-This build has **no account connection**. It does not request, store or use API keys, balances, private order history or account information. It cannot place orders.
+## GitHub update
+Upload/replace these items in the repository root:
+- `index.html`
+- `manifest.webmanifest`
+- `sw.js`
+- `icons/`
 
-## Analysis engine
-- BOS
-- CHoCH
-- Liquidity Sweep
-- EMA20 / EMA50
-- RSI14
-- ATR14
-- Volume expansion
-- Recent-range location
-- A / B / C signal quality
-- Entry zone / invalidation / TP1 / TP2
-- Position sizing by capital and risk percentage
+Delete old `app.js` and `styles.css` if present; v5.1 does not need them.
 
-## Journal
-Full plan → fills → partial exits → closed trade workflow with editing, fees, average entry, open quantity, realized P/L and realized ROI.
-
-## GitHub Pages
-Upload the **contents of this folder** to the repository root so that `index.html` is at the top level. In Repository Settings → Pages, choose `Deploy from a branch`, `main`, `/(root)`.
-
-
-## Local password lock (v5)
-- First launch asks you to create a password (minimum 6 characters).
-- The password is never hard-coded in the public repository.
-- A PBKDF2-SHA256 verifier with a random salt is stored only in the browser on that device.
-- The app auto-locks after 10 minutes of inactivity.
-- Settings includes **Change Password** and **Lock Now**.
-- Important: this is a local app lock, not server-side access control. A public GitHub Pages site is still publicly reachable; the lock protects normal access to the app UI on a device.
+After commit, open the GitHub Pages URL in Safari and refresh once. If the Home Screen app still shows the old version, remove the old Home Screen icon and add it again from Safari.
