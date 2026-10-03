@@ -1,4 +1,4 @@
-# TAJDARA M&M Universal v8
+# TAJDARA M&M Universal v8.1
 
 One responsive build for Desktop + iPhone.
 
@@ -10,7 +10,7 @@ One responsive build for Desktop + iPhone.
 
 The app does **not** connect to exchange accounts and does not use private exchange API keys.
 
-## v8 highlights
+## v8.1 highlights
 - Exchange-style interactive candlestick chart with crosshair, zoom, pan and auto refresh.
 - SMC overlays: BOS, CHoCH, buy-side / sell-side liquidity sweep markers.
 - Recent swing-high / swing-low trend lines.
@@ -40,3 +40,10 @@ Commit the changes. Existing Pages settings stay unchanged. Refresh the site onc
 
 ## Telegram + 24/7 monitoring
 See `cloudflare-worker/README_TELEGRAM.md`.
+
+## Telegram diagnostics in v8.1
+- Worker Health button checks `/health`.
+- Send Telegram Test calls `/test` directly.
+- The test uses the Worker URL and Pairing Key currently typed in Settings, even before pressing Save Settings.
+- Detailed 401 / 404 / 500 errors are shown instead of a generic Failed message.
+- Worker authentication trims accidental leading/trailing spaces in `APP_SHARED_KEY` and `X-TAJDARA-Key`.

@@ -9,8 +9,11 @@ function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { ...JSON_HEADERS, ...CORS } });
 }
 function authorized(req, env) {
-  return Boolean(env.APP_SHARED_KEY) && req.headers.get('X-TAJDARA-Key') === env.APP_SHARED_KEY;
+  const expected=String(env.APP_SHARED_KEY||'').trim();
+  const received=String(req.headers.get('X-TAJDARA-Key')||'').trim();
+  return Boolean(expected) && received === expected;
 }
+
 async function telegram(env, title, body) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) throw new Error('Telegram secrets are not configured');
   const text = `TAJDARA M&M\n${title}\n\n${body}`.slice(0, 4000);
@@ -109,15 +112,28 @@ async function monitorNews(env){
 
 export default {
   async fetch(req, env) {
-    if (req.method === 'OPTIONS') return new Response(null,{status:204,headers:CORS});
-    const u=new URL(req.url);
-    if(u.pathname==='/health')return json({ok:true,service:'TAJDARA M&M Signals + News Worker'});
-    if(u.pathname==='/news'&&req.method==='GET'){let items=await fetchNews();return json({ok:true,items,generatedAt:new Date().toISOString()});}
-    if(!authorized(req,env))return json({ok:false,error:'unauthorized'},401);
-    if(u.pathname==='/signal'&&req.method==='POST'){const b=await req.json();await telegram(env,b.title||'SIGNAL',b.body||'');return json({ok:true});}
-    if(u.pathname==='/sync'&&req.method==='POST'){const b=await req.json();await env.WATCHES.put('config',JSON.stringify(b));return json({ok:true,watches:(b.watches||[]).length});}
-    if(u.pathname==='/test'&&req.method==='POST'){await telegram(env,'TEST · TAJDARA M&M','Shared Telegram signal delivery is active.');return json({ok:true});}
-    return json({ok:false,error:'not found'},404);
+    try {
+      if (req.method === 'OPTIONS') return new Response(null,{status:204,headers:CORS});
+      const u=new URL(req.url);
+      if(u.pathname==='/health')return json({
+        ok:true,
+        service:'TAJDARA M&M Signals + News Worker v8.1',
+        authConfigured:Boolean(String(env.APP_SHARED_KEY||'').trim()),
+        telegramConfigured:Boolean(env.TELEGRAM_BOT_TOKEN&&env.TELEGRAM_CHAT_ID),
+        kvConfigured:Boolean(env.WATCHES)
+      });
+      if(u.pathname==='/news'&&req.method==='GET'){let items=await fetchNews();return json({ok:true,items,generatedAt:new Date().toISOString()});}
+      if(!authorized(req,env))return json({ok:false,error:'unauthorized',hint:'Pairing Key must exactly match APP_SHARED_KEY.'},401);
+      if(u.pathname==='/signal'&&req.method==='POST'){const b=await req.json();const tg=await telegram(env,b.title||'SIGNAL',b.body||'');return json({ok:true,telegramMessageId:tg?.result?.message_id||null});}
+      if(u.pathname==='/sync'&&req.method==='POST'){
+        if(!env.WATCHES)return json({ok:false,error:'WATCHES KV binding is missing'},500);
+        const b=await req.json();await env.WATCHES.put('config',JSON.stringify(b));return json({ok:true,watches:(b.watches||[]).length});
+      }
+      if(u.pathname==='/test'&&req.method==='POST'){const tg=await telegram(env,'TEST · TAJDARA M&M','Telegram signal delivery is active for this shared chat.');return json({ok:true,telegramMessageId:tg?.result?.message_id||null});}
+      return json({ok:false,error:'not found'},404);
+    } catch (e) {
+      return json({ok:false,error:e?.message||String(e)},500);
+    }
   },
   async scheduled(event, env, ctx) { ctx.waitUntil(Promise.all([monitor(env),monitorNews(env)])); },
 };

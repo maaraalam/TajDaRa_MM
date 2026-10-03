@@ -1,4 +1,4 @@
-# TAJDARA M&M - 24/7 Telegram Signals + Market News
+# TAJDARA M&M v8.1 - 24/7 Telegram Signals + Market News
 
 The Worker keeps the Telegram bot token out of the public GitHub Pages code. It can monitor synced watches every 5 minutes, send BUY / TAKE PROFIT / EXIT signals to a shared Telegram group, and notify the group about new HIGH-impact market headlines.
 
@@ -52,3 +52,6 @@ The Worker aggregates an official Federal Reserve RSS feed plus fresh market-sea
 - Telegram bot token and group chat ID stay only in Cloudflare Worker Secrets.
 - The PWA stores only the Worker URL and pairing key on your own device.
 - Telegram messages contain market/signal/news information, not account credentials.
+
+## v8.1 diagnostics
+After deploying `worker.js`, open `/health`. It now reports whether auth, Telegram secrets and KV binding are configured, without exposing secret values. In the PWA Settings, use **Worker Health** first and then **Send Telegram Test**.
